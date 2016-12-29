@@ -1,0 +1,7 @@
+---
+ 
+ - name: install samba
+   command: yum install -y samba
+
+ - name: restart smb
+   command: systemctl restart smb
