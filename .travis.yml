@@ -1,23 +1,19 @@
 ---
-sudo: required
-
-services:
-  - docker
+---
+language: python
+python: "2.7"
 
 before_install:
-  # Fetch base image and build new container
-  - sudo docker pull centos:7
-  - sudo docker build --rm=true --tag=travispoc .
+  # Make sure everything's up to date.
+  - sudo apt-get update -qq
+
+install:
+  # Install Ansible.
+  - pip install ansible
+
+  # Add ansible.cfg to pick up roles path.
+  - "printf '[defaults]\nroles_path = ../' > ansible.cfg"
 
 script:
-  # Run container in detached state
-  - sudo docker run --detach --privileged --volume="${PWD}":/etc/ansible/roles/role_under_test:ro --volume=/sys/fs/cgroup:/sys/fs/cgroup:ro travispoc /usr/lib/systemd/systemd > /tmp/container_id
-  # Check syntax of ansible playbook
-  - sudo docker exec "$(cat /tmp/container_id)" ansible-playbook /etc/ansible/roles/role_under_test/test.yml --syntax-check
-  # Run ansible playbook
-  - sudo docker exec "$(cat /tmp/container_id)" ansible-playbook /etc/ansible/roles/role_under_test/test.yml
-  # Clean up
-  - sudo docker stop "$(cat /tmp/container_id)"
-
-notifications:
-  email: false
+  # We'll add some commands to test the role here.
+  - ansible-playbook -i tests/inventory tests/test.yml --syntax-check
